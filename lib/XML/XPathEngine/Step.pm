@@ -127,8 +127,14 @@ sub as_xml {
 sub evaluate {
     my $self = shift;
     my $from = shift; # context nodeset
-    
-#    warn "Step::evaluate called with ", $from->size, " length nodeset\n";
+
+    if( $from && !$from->isa( 'XML::XPathEngine::NodeSet'))
+      { #warn "fixing $from!\n";
+        my $from_nodeset= XML::XPathEngine::NodeSet->new();
+        $from_nodeset->push( $from); 
+        $from= $from_nodeset;
+      }
+      #warn "Step::evaluate called with ", $from->size, " length nodeset\n";
     
     $self->{pp}->_set_context_set($from);
     

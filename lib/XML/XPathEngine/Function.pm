@@ -330,7 +330,7 @@ sub lang {
     my $self = shift;
     my ($node, @params) = @_;
     die "lang: function takes 1 parameter\n" if @params != 1;
-    my $lang = $node->findvalue('(ancestor-or-self::*[@xml:lang]/@xml:lang)[last()]');
+    my $lang = $node->findvalue('(ancestor-or-self::*[@xml:lang]/@xml:lang)[1]');
     my $lclang = lc($params[0]->string_value);
     # warn("Looking for lang($lclang) in $lang\n");
     if (substr(lc($lang), 0, length($lclang)) eq $lclang) {

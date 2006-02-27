@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 
@@ -79,7 +79,11 @@ sub find {
     my $self = shift;
     my( $path, $context) = @_;
     my $parsed_path= $self->_parse( $path);
-    return $parsed_path->evaluate( $context)->sort->remove_duplicates;
+    my $results= $parsed_path->evaluate( $context);
+    if( $results->isa( 'XML::XPathEngine::NodeSet'))
+      { return $results->sort->remove_duplicates; }
+    else
+      { return $results; }
 }
 
 

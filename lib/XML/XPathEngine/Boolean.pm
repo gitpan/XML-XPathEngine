@@ -41,6 +41,9 @@ sub to_literal { XML::XPathEngine::Literal->new($_[0]->value ? "true" : "false")
 
 sub string_value { return $_[0]->to_literal->value; }
 
+sub getChildNodes { return wantarray ? () : []; }
+sub getAttributes { return wantarray ? () : []; }
+
 1;
 __END__
 

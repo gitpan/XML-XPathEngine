@@ -61,6 +61,9 @@ sub to_literal { return $_[0]; }
 
 sub string_value { return $_[0]->value; }
 
+sub getChildNodes { return wantarray ? () : []; }
+sub getAttributes { return wantarray ? () : []; }
+
 1;
 __END__
 

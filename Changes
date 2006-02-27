@@ -1,5 +1,10 @@
 Revision history for XML::XPathEngine
 
+0.03    Bug fixes for queries involving elt="text" (through XML::Twig::XPath),
+        the lang() function
+
+0.02    First version on CPAN
+
 0.01    Date/time
         First version, released on an unsuspecting world.
 
