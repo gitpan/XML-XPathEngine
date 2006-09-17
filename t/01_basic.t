@@ -34,8 +34,11 @@ is( $xp->findvalue( '//*[@att2]', $tree), 'gvkid1gkid2 1gvkid2gkid2 2gvkid3gkid2
 
 is( $xp->findvalue( '//kid1[@att1=~/v[345]/]', $tree), 'vkid3vkid5', "match on attributes");
 
+is( $xp->findvalue( '//@*', $tree), 'v1v1vvvxv2vvvxv3vvvxv4vvvxv5vvvx', 'match all attributes');
+is( $xp->findvalue( '//@*[parent::*/@att1=~/v[345]/]', $tree), 'v3v4v5', 'match all attributes with a test');
+
 sub init_tree
-  {  my $tree  = tree->new( 'att', name => 'tree', value => 'tree');
+  { my $tree  = tree->new( 'att', name => 'tree', value => 'tree');
     my $root  = tree->new( 'att', name => 'root', value => 'root_value', att1 => 'v1');
     $root->add_as_last_child_of( $tree);
 
@@ -49,7 +52,6 @@ sub init_tree
       }
 
     $tree->set_pos;
-    tree->dump_all;
 
     return $tree;
   }

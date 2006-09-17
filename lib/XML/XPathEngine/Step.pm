@@ -403,10 +403,9 @@ sub node_test {
     elsif ($test == test_nt_comment) {
         return 1 if $node->isCommentNode;
     }
-#     elsif ($test == test_nt_pi && !$self->{literal}) {
-#         warn "Unreachable code???";
-#         return 1 if $node->isPINode;
-#     }
+     elsif ($test == test_nt_pi && !$self->{literal}) {
+         return 1 if $node->isPINode;
+     }
     elsif ($test == test_nt_pi) {
         return unless $node->isPINode;
         if (my $val = $self->{literal}->value) {
