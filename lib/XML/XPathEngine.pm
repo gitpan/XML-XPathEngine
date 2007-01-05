@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 
@@ -225,27 +225,30 @@ sub _tokenize {
     while( length($path))
       { my $token='';
         if( $expected eq 'RE' && ($path=~ m{\G\s*($REGEXP_RE $REGEXP_MOD_RE?)\s*}gcxso))
-          { $token= $1; $expected=''; }
+          { # special case: regexp expected after =~ or !~, regular parsing rules do not apply
+            # ( the / is now the regexp delimiter) 
+            $token= $1; $expected=''; 
+          }
         elsif($path =~ m/\G
             \s* # ignore all whitespace
             ( # tokens
                 $LITERAL|
-                $NUMBER_RE| # Match digits
-                \.\.| # match parent
-                \.| # match current
-                ($AXIS_NAME)?$NODE_TYPE| # match tests
+                $NUMBER_RE|                            # digits
+                \.\.|                                  # parent
+                \.|                                    # current
+                ($AXIS_NAME)?$NODE_TYPE|               # tests
                 processing-instruction|
-                \@($NCWild|$QName|$QNWild)| # match attrib
-                \$$QName| # match variable reference
-                ($AXIS_NAME)?($NCWild|$QName|$QNWild)| # match NCName,NodeType,Axis::Test
-                \!=|<=|\-|>=|\/\/|and|or|mod|div| # multi-char seps
-                =~|\!~|                             # regexp matching (not in the XPath spec)
-                [,\+=\|<>\/\(\[\]\)]| # single char seps
-                (?<!(\@|\(|\[))\*| # multiply operator rules (see xpath spec)
+                \@($NCWild|$QName|$QNWild)|            # attrib
+                \$$QName|                              # variable reference
+                ($AXIS_NAME)?($NCWild|$QName|$QNWild)| # NCName,NodeType,Axis::Test
+                \!=|<=|\-|>=|\/\/|and|or|mod|div|      # multi-char seps
+                =~|\!~|                                # regexp (not in the XPath spec)
+                [,\+=\|<>\/\(\[\]\)]|                  # single char seps
+                (?<!(\@|\(|\[))\*|                     # multiply operator rules (see xpath spec)
                 (?<!::)\*|
-                $ # match end of query
+                $                                      # end of query
             )
-            \s* # ignore all whitespace
+            \s*                                        # ignore all whitespace
             /gcxso) 
           { 
             $token = $1;

@@ -21,6 +21,12 @@ sub sort {
     return $self;
 }
 
+sub reverse {
+    my $self = CORE::shift;
+    @$self = reverse @$self;
+    return $self;
+}
+
 sub remove_duplicates {
     my $self = CORE::shift;
 		my @unique;

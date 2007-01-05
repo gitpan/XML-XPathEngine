@@ -15,5 +15,5 @@ WriteMakefile(
     clean               => { FILES => 'XML-XPathEngine-*' },
 );
 # add the license bit in META.yaml
-unless( `$^X -n -e'print if( m{license\s*:\s*perl})' Makefile`)
+unless( `$^X -n -e'print if( m{license\\s*:\\s*perl})' Makefile`)
   { system $^X . q{ -p -i -e's{^((.*)distribution_type: module(.*))}{$1\n$2license: perl$3}m' Makefile}; }

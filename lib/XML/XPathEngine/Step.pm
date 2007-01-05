@@ -272,23 +272,19 @@ sub axis_following {
     my $self = shift;
     my ($context, $results) = @_;
     
-    START:
-
-    my $parent = $context->getParentNode;
-    return $results unless $parent;
-        
-    while ($context = $context->getNextSibling) {
-        axis_descendant_or_self($self, $context, $results);
-    }
-
-    $context = $parent;
-    goto START;
+    while( $context=    $context->getNextSibling
+                     || ($context->getParentNode && $context->getParentNode->getNextSibling)
+         )
+      { axis_descendant_or_self($self, $context, $results); 
+      }
+    return $results->sort; # needs to be sorted as axis_descendant_or_self returns nodes in reverse order
 }
 
 sub axis_following_sibling {
     my $self = shift;
     my ($context, $results) = @_;
 
+    #warn "in axis_following_sibling";
     while ($context = $context->getNextSibling) {
         if (node_test($self, $context)) {
             $results->push($context);
@@ -492,12 +488,13 @@ sub filter_by_predicate {
 #    warn "Filter by predicate: $predicate\n";
     
     my $newset = XML::XPathEngine::NodeSet->new();
-    
+
     for(my $i = 1; $i <= $nodeset->size; $i++) {
         # set context set each time 'cos a loc-path in the expr could change it
         $self->{pp}->_set_context_set($nodeset);
         $self->{pp}->_set_context_pos($i);
         my $result = $predicate->evaluate($nodeset->get_node($i));
+        #warn "\$result is a ", ref( $result), ": '$result', \$i: '$i'\n";
         if ($result->isa('XML::XPathEngine::Boolean')) {
             if ($result->value) {
                 $newset->push($nodeset->get_node($i));
@@ -505,7 +502,7 @@ sub filter_by_predicate {
         }
         elsif ($result->isa('XML::XPathEngine::Number')) {
             if ($result->value == $i) {
-                $newset->push($nodeset->get_node($i));
+                $newset->push($nodeset->get_node($i)); last;
             }
         }
         else {
