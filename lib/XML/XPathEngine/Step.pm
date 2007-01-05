@@ -272,12 +272,23 @@ sub axis_following {
     my $self = shift;
     my ($context, $results) = @_;
     
-    while( $context=    $context->getNextSibling
-                     || ($context->getParentNode && $context->getParentNode->getNextSibling)
-         )
-      { axis_descendant_or_self($self, $context, $results); 
-      }
-    return $results->sort; # needs to be sorted as axis_descendant_or_self returns nodes in reverse order
+#    while( $context=    $context->getNextSibling
+#                     || ($context->getParentNode && $context->getParentNode->getNextSibling)
+#         )
+#      { axis_descendant_or_self($self, $context, $results); 
+#      }
+#    return $results->sort; # needs to be sorted as axis_descendant_or_self returns nodes in reverse order
+ START:
+
+    my $parent = $context->getParentNode;
+    return $results->sort unless $parent;
+        
+    while ($context = $context->getNextSibling) {
+        axis_descendant_or_self($self, $context, $results);
+    }
+
+    $context = $parent;
+    goto START;
 }
 
 sub axis_following_sibling {
