@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.07';
+$VERSION = '0.08';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 

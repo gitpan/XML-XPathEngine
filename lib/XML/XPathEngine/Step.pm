@@ -268,28 +268,28 @@ sub axis_descendant_or_self {
     }
 }
 
-sub axis_following {
-    my $self = shift;
+sub axis_following 
+  { my $self = shift;
     my ($context, $results) = @_;
-    
-#    while( $context=    $context->getNextSibling
-#                     || ($context->getParentNode && $context->getParentNode->getNextSibling)
-#         )
-#      { axis_descendant_or_self($self, $context, $results); 
-#      }
-#    return $results->sort; # needs to be sorted as axis_descendant_or_self returns nodes in reverse order
- START:
 
-    my $parent = $context->getParentNode;
-    return $results->sort unless $parent;
-        
-    while ($context = $context->getNextSibling) {
-        axis_descendant_or_self($self, $context, $results);
-    }
+    my $elt= $context->getNextSibling || _next_sibling_of_an_ancestor_of( $context);
+    while( $elt)
+      { if (node_test($self, $elt)) { $results->push( $elt); }
+        $elt= $elt->getFirstChild || $elt->getNextSibling || _next_sibling_of_an_ancestor_of( $elt);
+      }
+  }
 
-    $context = $parent;
-    goto START;
-}
+sub _next_sibling_of_an_ancestor_of
+  { my $elt= shift;
+    $elt= $elt->getParentNode || return;
+    my $next_elt;
+    while( !($next_elt= $elt->getNextSibling))
+      { $elt= $elt->getParentNode;  
+        return unless( $elt && $elt->can( 'getNextSibling')); 
+      }
+    return $next_elt;
+  }
+
 
 sub axis_following_sibling {
     my $self = shift;
@@ -326,24 +326,28 @@ sub axis_parent {
     }
 }
 
-sub axis_preceding {
-    my $self = shift;
+sub axis_preceding 
+  { my $self = shift;
     my ($context, $results) = @_;
-    
-    # all preceding nodes in document order, except ancestors
-    
-    START:
 
-    my $parent = $context->getParentNode;
-    return $results unless $parent;
+    my $elt= $context->getPreviousSibling || _previous_sibling_of_an_ancestor_of( $context);
+    while( $elt)
+      { if (node_test($self, $elt)) { $results->push( $elt); }
+        $elt= $elt->getLastChild || $elt->getPreviousSibling || _previous_sibling_of_an_ancestor_of( $elt);
+      }
+  }
 
-    while ($context = $context->getPreviousSibling) {
-        axis_descendant_or_self($self, $context, $results);
-    }
-    
-    $context = $parent;
-    goto START;
-}
+sub _previous_sibling_of_an_ancestor_of
+  { my $elt= shift;
+    $elt= $elt->getParentNode || return;
+    my $next_elt;
+    while( !($next_elt= $elt->getPreviousSibling))
+      { $elt= $elt->getParentNode;  
+        return unless $elt->getParentNode; # so we don't have to write a getPreviousSibling 
+      }
+    return $next_elt;
+  }
+
 
 sub axis_preceding_sibling {
     my $self = shift;
