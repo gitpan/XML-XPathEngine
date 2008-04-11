@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 use XML::XPathEngine;
 
 BEGIN { push @INC, './t'; }
@@ -44,6 +44,7 @@ is( $xp->findvalue( '//kid1[@att1="v3"]/following::kid1/*', $tree), 'gvkid5gkid2
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2[1]', $tree), 'gkid2 2', "preceding axis[1]");
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2[2]', $tree), 'gkid2 1', "preceding axis[1]");
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2', $tree), 'gkid2 1gkid2 2', "preceding axis");
+is( $xp->findvalue( 'count(//kid1)', $tree), '3', 'preceding count');
 
 sub init_tree
   { my $tree  = tree->new( 'att', name => 'tree', value => 'tree');

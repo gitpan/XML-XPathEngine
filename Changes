@@ -1,25 +1,51 @@
 Revision history for XML::XPathEngine
 
-0.08    Fixed bug in XML::XPathEngine::Step::axis_preceding
+version: 0.09
+fix:    namespace processing was a bit dodgy, it's been cleaned up now.
+        Tested through XML::Twig::XPath and XML::DOM::XPath
+fix:    count did not work (RT #34854), found and patched by 
+        Yasuhiro Matsumoto
+        http://rt.cpan.org/Ticket/Display.html?id=34854
+added:  XML::XPathEngine set_strict_namespaces method, which makes 
+        namespace processing more standard compliant, and probably often
+        more of a pain.
+        Tested through XML::Twig::XPath
+        Thanks to Timothy Appnel for his input in that matter
+added:  XML::XPathEngine findnodes_as_strings method, which returns an
+        array of strings (the getValue of the nodes). 
+fixed:  findnodes_as_string now returns the empty string if the result
+        of the XPath query is a boolean (XML::XPathEngine::Boolean), as
+        when querying //@id="foo" for example. This makes the behaviour
+        similar to XML::LibXML's.
+
+version:0.08
+fix:    Fixed bug in XML::XPathEngine::Step::axis_preceding
         (same bug as with axis_following)
 
-0.07    Fixed bug in the previous bug fix
+version: 0.07    
+fix:    Fixed bug in the previous bug fix
 
-0.06    Fixed bug in XML::XPathEngine::Step::axis_following
+version: 0.06
+fix:    Fixed bug in XML::XPathEngine::Step::axis_following
         that messed up queries using the 'following' axis
        (tested by HTML::TreeBuilder::XPath 0.07)
 
-0.05    Fixed bug in XML::XPathEngine::Function::as_xml
+version: 0.05
+fix:    Fixed bug in XML::XPathEngine::Function::as_xml
         as per RT #21951 (spotted by BJOERN)
         see http://rt.cpan.org/Ticket/Display.html?id=21951
 
-0.04    Fixed bug in Step.pm
+version: 0.04
+fix:    Fixed bug in Step.pm
 
-0.03    Bug fixes for queries involving elt="text" (through XML::Twig::XPath),
+version: 0.03
+fix:    Bug fixes for queries involving elt="text" (tested through 
+        XML::Twig::XPath),
         the lang() function
 
-0.02    First version on CPAN
+version: 0.02
+released: First version on CPAN
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+version: 0.01 
+created:  First version, released on an unsuspecting world.
 

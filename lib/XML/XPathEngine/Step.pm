@@ -129,7 +129,7 @@ sub evaluate {
     my $from = shift; # context nodeset
 
     if( $from && !$from->isa( 'XML::XPathEngine::NodeSet'))
-      { #warn "fixing $from!\n";
+      { 
         my $from_nodeset= XML::XPathEngine::NodeSet->new();
         $from_nodeset->push( $from); 
         $from= $from_nodeset;
@@ -387,24 +387,15 @@ sub node_test {
 
     if ($test == test_ncwild) {
         return unless $node->isElementNode;
-        my $match_ns = $self->{pp}->get_namespace($self->{literal}, $node);
-        if (my $node_nsnode = $node->getNamespace()) {
-            return 1 if $match_ns eq $node_nsnode->getValue;
-        }
+        return _match_ns( $self, $node);
     }
     elsif ($test == test_qname) {
         return unless $node->isElementNode;
-        if ($self->{literal} =~ /:/) {
-            my ($prefix, $name) = split(':', $self->{literal}, 2);
-            my $match_ns = $self->{pp}->get_namespace($prefix, $node);
-            if (my $node_nsnode = $node->getNamespace()) {
-#                warn "match: '$self->{literal}' match NS: '$match_ns' got NS: '", $node_nsnode->getValue, "'\n";
-                return 1 if ($match_ns eq $node_nsnode->getValue) &&
-                        ($name eq $node->getLocalName);
+        if ($self->{literal} =~ /:/ || $self->{pp}->{strict_namespaces}) {
+            my ($prefix, $name) = _name2prefix_and_local_name( $self->{literal});
+            return 1 if( ($name eq $node->getLocalName) && _match_ns( $self, $node));
             }
-        }
         else {
-#            warn "Node test: ", $node->getName, "\n";
             return 1 if $node->getName eq $self->{literal};
         }
     }
@@ -430,32 +421,57 @@ sub node_test {
     return; # fallthrough returns false
 }
 
+sub _name2prefix_and_local_name
+  { my $name= shift; 
+    return $name =~ /:/ ? split(':', $name, 2) : ( '', $name);
+  }
+sub _name2prefix
+  { my $name= shift;
+    if( $name=~ m{^(.*?):}) { return $1; } else { return ''; } 
+  }
+
+sub _match_ns
+  { my( $self, $node)= @_;
+    my $pp= $self->{pp};
+    my $prefix= _name2prefix( $self->{literal});
+    my( $match_ns, $node_ns);
+    if( $pp->{uses_namespaces} || $pp->{strict_namespaces})
+      { $match_ns = $pp->get_namespace($prefix);
+        if( $match_ns || $pp->{strict_namespaces})
+          { $node_ns= $node->getNamespace->getValue; }
+        else
+          { # non-standard behaviour: if the query prefix is not declared
+            # compare the 2 prefixes
+            $match_ns = $prefix;
+            $node_ns  = _name2prefix( $node->getName);
+          }
+      }
+    else
+      { $match_ns = $prefix;
+        $node_ns  = _name2prefix( $node->getName);
+      }
+
+    return $match_ns eq $node_ns;
+  }
+
+
 sub test_attribute {
     my $self = shift;
     my $node = shift;
-    
-#    warn "test_attrib: '$self->{test}' against: ", $node->getName, "\n";
-#    warn "node type: $node->[node_type]\n";
     
     my $test = $self->{test};
     
     return 1 if ($test == test_attr_any) || ($test == test_nt_node);
         
     if ($test == test_attr_ncwild) {
-        my $match_ns = $self->{pp}->get_namespace($self->{literal}, $node);
-        if (my $node_nsnode = $node->getNamespace()) {
-            return 1 if $match_ns eq $node_nsnode->getValue;
-        }
+        return 1 if _match_ns( $self, $node);
     }
     elsif ($test == test_attr_qname) {
         if ($self->{literal} =~ /:/) {
-            my ($prefix, $name) = split(':', $self->{literal}, 2);
-            my $match_ns = $self->{pp}->get_namespace($prefix, $node);
-            if (my $node_nsnode = $node->getNamespace()) {
-                return 1 if ($match_ns eq $node_nsnode->getValue) &&
-                        ($name eq $node->getLocalName);
+            my ($prefix, $name) = _name2prefix_and_local_name( $self->{literal});
+
+            return 1 if ( ($name eq $node->getLocalName) && ( _match_ns( $self, $node)) );
             }
-        }
         else {
             return 1 if $node->getName eq $self->{literal};
         }
@@ -509,7 +525,6 @@ sub filter_by_predicate {
         $self->{pp}->_set_context_set($nodeset);
         $self->{pp}->_set_context_pos($i);
         my $result = $predicate->evaluate($nodeset->get_node($i));
-        #warn "\$result is a ", ref( $result), ": '$result', \$i: '$i'\n";
         if ($result->isa('XML::XPathEngine::Boolean')) {
             if ($result->value) {
                 $newset->push($nodeset->get_node($i));

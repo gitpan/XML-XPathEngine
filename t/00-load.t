@@ -4,4 +4,4 @@ BEGIN {
 use_ok( 'XML::XPathEngine' );
 }
 
-diag( "Testing XML::XPathEngine $XML::XPathEngine::VERSION, Perl 5.008007, /usr/bin/perl" );
+diag( "Testing XML::XPathEngine $XML::XPathEngine::VERSION, Perl $], /usr/bin/perl" );

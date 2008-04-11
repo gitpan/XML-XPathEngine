@@ -1,14 +1,14 @@
 --- #YAML:1.0
 name:                XML-XPathEngine
-version:             0.08
+version:             0.09
 abstract:            a re-usable XPath engine for DOM-like trees
 license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.31
+author:              
+    - Michel Rodriguez <mirod@cpan.org>
+generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
     Test::More:                    0
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Michel Rodriguez <mirod@cpan.org>
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

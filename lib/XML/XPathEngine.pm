@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.08';
+$VERSION = '0.09';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 
@@ -106,7 +106,7 @@ sub findnodes {
     if ($results->isa('XML::XPathEngine::NodeSet')) 
       { return wantarray ? $results->get_nodelist : $results; }
     else
-      { return wantarray ? () : XML::XPathEngine::NodeSet->new();   }
+      { return wantarray ? ($results) : $results; } # result should be SCALAR
 }
 
 
@@ -116,14 +116,38 @@ sub findnodes_as_string {
     
     my $results = $self->find( $path, $context);
     
+
     if ($results->isa('XML::XPathEngine::NodeSet')) {
-        return join('', map { $_->toString } $results->get_nodelist);
+        return join '', map { $_->toString } $results->get_nodelist;
+    }
+    elsif ($results->isa('XML::XPathEngine::Boolean')) {
+        return ''; # to behave like XML::LibXML
     }
     elsif ($results->isa('XML::XPathEngine::Node')) {
         return $results->toString;
     }
     else {
-        return XML::XPathEngine::Node::XMLescape($results->value);
+        return _xml_escape_text($results->value);
+    }
+}
+
+sub findnodes_as_strings {
+    my $self = shift;
+    my ($path, $context) = @_;
+    
+    my $results = $self->find( $path, $context);
+    
+    if ($results->isa('XML::XPathEngine::NodeSet')) {
+        return map { $_->getValue } $results->get_nodelist;
+    }
+    elsif ($results->isa('XML::XPathEngine::Boolean')) {
+        return (); # to behave like XML::LibXML
+    }
+    elsif ($results->isa('XML::XPathEngine::Node')) {
+        return $results->getValue;
+    }
+    else {
+        return _xml_escape_text($results->value);
     }
 }
 
@@ -160,23 +184,29 @@ sub set_var {
 sub set_namespace {
     my $self = shift;
     my ($prefix, $expanded) = @_;
+    $self->{uses_namespaces}=1;
     $self->{namespaces}{$prefix} = $expanded;
 }
 
 sub clear_namespaces {
     my $self = shift;
+    $self->{uses_namespaces}=0;
     $self->{namespaces} = {};
 }
 
 sub get_namespace {
     my $self = shift;
     my ($prefix, $node) = @_;
-    if (my $ns = $self->{namespaces}{$prefix}) {
-        return $ns;
-    }
-    if (my $nsnode = $node->getNamespace($prefix)) {
-        return $nsnode->getValue();
-    }
+   
+    my $ns= $node                    ? $node->getNamespace($prefix)
+          : $self->{uses_namespaces} ? $self->{namespaces}->{$prefix}
+          :                            $prefix;
+  return $ns;
+}
+
+sub set_strict_namespaces {
+    my( $self, $strict) = @_;
+    $self->{strict_namespaces}= $strict;
 }
 
 sub _get_context_set { $_[0]->{context_set}; }
@@ -189,9 +219,12 @@ sub _get_context_node { $_[0]->{context_set}->get_node($_[0]->{context_pos}); }
 sub _parse {
     my $self = shift;
     my $path = shift;
-    if ($CACHE{$path}) {
-        return $CACHE{$path};
-    }
+
+    my $context= join( '&&', $path, map { "$_=>$self->{namespaces}->{$_}" } sort keys %{$self->{namespaces}});
+    #warn "context: $context\n";
+
+    if ($CACHE{$context}) { return $CACHE{$context}; }
+
     my $tokens = $self->_tokenize($path);
 
     $self->{_tokpos} = 0;
@@ -201,8 +234,11 @@ sub _parse {
         # didn't manage to parse entire expression - throw an exception
         die "Parse of expression $path failed - junk after end of expression: $tokens->[$self->{_tokpos}]";
     }
-    
-    $CACHE{$path} = $tree;
+
+    $tree->{uses_namespaces}= $self->{uses_namespaces};   
+    $tree->{strict_namespaces}= $self->{strict_namespaces};   
+ 
+    $CACHE{$context} = $tree;
     
     _debug("PARSED Expr to:\n", $tree->as_string, "\n") if( $XML::XPathEngine::DEBUG);
     
@@ -914,6 +950,16 @@ sub _is_step {
       }
 }
 
+{ my %ENT;
+  BEGIN { %ENT= ( '&' => '&amp;', '<' => '&lt;', '>' => '&gt;', '"' => '&quote;'); }
+ 
+  sub _xml_escape_text
+    { my( $text)= @_;
+      $text=~ s{([&<>])}{$ENT{$1}}g;
+      return $text;
+    }
+}
+
 sub _debug {
     
     my ($pkg, $file, $line, $sub) = caller(1);
@@ -989,8 +1035,13 @@ In scalar context returns an XML::XPathEngine::NodeSet object.
 
 =head2 findnodes_as_string ($path, $context)
 
-Returns the nodes found reproduced as XML. The result is not guaranteed
-to be valid XML though.
+Returns the nodes found as a single string. The result is 
+not guaranteed to be valid XML though (it could for example be just text
+if the query returns attribute values).
+
+=head2 findnodes_as_strings ($path, $context)
+
+Returns the nodes found as a list of strings, one per node found.
 
 =head2 findvalue ($path, $context)
 
@@ -1044,6 +1095,18 @@ Clears all previously set namespace mappings.
 =head2 get_namespace ($prefix, $node)
 
 Returns the uri associated to the prefix for the node (mostly for internal usage)
+
+=head2 set_strict_namespaces ($strict)
+
+By default, for historical as well as convenience reasons, XML::XPathEngine
+has a slightly non-standard way of dealing with the default namespace. 
+
+If you search for C<//tag> it will return elements C<tag>. As far as I understand it,
+if the document has a default namespace, this should not return anything.
+You would have to first do a C<set_namespace>, and then search using the namespace.
+
+Passing a true value to C<set_strict_namespaces> will activate this behaviour, passing a
+false value will return it to its default behaviour.
 
 =head2 set_var ($var. $val)
 
