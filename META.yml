@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                XML-XPathEngine
-version:             0.09
+version:             0.10
 abstract:            a re-usable XPath engine for DOM-like trees
 license:             ~
 author:              

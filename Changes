@@ -1,5 +1,25 @@
 Revision history for XML::XPathEngine
 
+version 0.10
+fix:    overloading did not quite work (literals returned by findvalue
+        woult cause an exception when used as numbers).
+        the fix is to return a real string in findvalue, instead of
+        an XML::XPath::Engine::Literal object that then needs to be overloaded
+        while this theoretically could break code that would rely on 
+        the return being an object, I doubt this is the case in Real Code.
+        let me know if this causes any problem
+        Bug found by Niko Tyni and reported on Debian 
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=460297 
+        reported on RT: http://rt.cpan.org/Public/Bug/Display.html?id=34908
+        bug tested in the XML::DOM::XPath 0.14 test suite
+
+fix:    predicates using the position and/or other conditions would fail,
+        as the position would not be saved in Step.pm
+        Reported by Stephane Bortzmeyer, patched by Niko Tyni
+        http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=460281
+        http://rt.cpan.org/Ticket/Display.html?id=34907
+        bug tested in the XML::DOM::XPath 0.14 test suite
+
 version: 0.09
 fix:    namespace processing was a bit dodgy, it's been cleaned up now.
         Tested through XML::Twig::XPath and XML::DOM::XPath

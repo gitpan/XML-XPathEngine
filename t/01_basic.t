@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 23;
 use XML::XPathEngine;
 
 BEGIN { push @INC, './t'; }
@@ -35,7 +35,7 @@ is( $xp->findvalue( '//*[@att2]', $tree), 'gvkid1gkid2 1gvkid2gkid2 2gvkid3gkid2
 
 is( $xp->findvalue( '//kid1[@att1=~/v[345]/]', $tree), 'vkid3vkid5', "match on attributes");
 
-is( $xp->findvalue( '//@*', $tree), 'v1v1vvvxv2vvvxv3vvvxv4vvvxv5vvvx', 'match all attributes');
+is( $xp->findvalue( '//@*', $tree), 'v1v1vvvx1v2vvvx0v3vvvx1v4vvvx0v5vvvx1', 'match all attributes');
 is( $xp->findvalue( '//@*[parent::*/@att1=~/v[345]/]', $tree), 'v3v4v5', 'match all attributes with a test');
 
 is( $xp->findvalue( '//kid1[@att1="v3"]/following::gkid2[1]', $tree), 'gkid2 4', "following axis[1]");
@@ -44,7 +44,19 @@ is( $xp->findvalue( '//kid1[@att1="v3"]/following::kid1/*', $tree), 'gvkid5gkid2
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2[1]', $tree), 'gkid2 2', "preceding axis[1]");
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2[2]', $tree), 'gkid2 1', "preceding axis[1]");
 is( $xp->findvalue( '//kid1[@att1="v3"]/preceding::gkid2', $tree), 'gkid2 1gkid2 2', "preceding axis");
-is( $xp->findvalue( 'count(//kid1)', $tree), '3', 'preceding count');
+
+is( $xp->findvalue( 'count(//kid1)', $tree), '3', 'count( //gkid1)');
+is( $xp->findvalue( 'count(//gkid2)', $tree), '5', 'count( //gkid2)');
+
+is( $xp->findvalue( 'count(/root[count(.//kid1)=count(.//gkid1)])', $tree), 1, 'count() in expression (count(//kid1)=count(//gkid1))');
+is( $xp->findvalue( 'count(/root[count(.//kid1)>count(.//gkid1)])', $tree), 0, 'count() in expression (returns 0)');
+is( $xp->findvalue( 'count(/root[count(.//kid1)=count(.//gkid2)])', $tree), 0, 'count() in expression (returns 1)');
+is( $xp->findvalue( 'count( root/*[count( ./gkid0) = 1])', $tree), 2, 'count() in expression (root/*[count( ./gkid0) = 1])');
+
+is( $xp->findvalue( 'count(//gkid2[@att2="vx" and @att3=1])', $tree), 3, 'count with and');
+is( $xp->findvalue( 'count(//gkid2[@att2="vx" and @att3])', $tree), 5, 'count with and');
+is( $xp->findvalue( 'count(//gkid2[@att2="vx" or @att3])', $tree), 5, 'count with or');
+
 
 sub init_tree
   { my $tree  = tree->new( 'att', name => 'tree', value => 'tree');
@@ -56,7 +68,7 @@ sub init_tree
         $kid->add_as_last_child_of( $root);
         my $gkid1= tree->new( 'att', name => 'gkid' . $_ % 2, value => "gvkid$_", att2 => "vv");
         $gkid1->add_as_last_child_of( $kid);
-        my $gkid2= tree->new( 'att', name => 'gkid2', value => "gkid2 $_", att2 => "vx");
+        my $gkid2= tree->new( 'att', name => 'gkid2', value => "gkid2 $_", att2 => "vx", att3 => $_ % 2);
         $gkid2->add_as_last_child_of( $kid);
       }
 

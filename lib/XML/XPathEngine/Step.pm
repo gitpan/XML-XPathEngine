@@ -136,6 +136,8 @@ sub evaluate {
       }
       #warn "Step::evaluate called with ", $from->size, " length nodeset\n";
     
+    my $saved_context = $self->{pp}->_get_context_set;
+    my $saved_pos = $self->{pp}->_get_context_pos;
     $self->{pp}->_set_context_set($from);
     
     my $initial_nodeset = XML::XPathEngine::NodeSet->new();
@@ -154,7 +156,8 @@ sub evaluate {
     
 #    warn "Step::evaluate initial nodeset size: ", $initial_nodeset->size, "\n";
     
-    $self->{pp}->_set_context_set(undef);
+    $self->{pp}->_set_context_set($saved_context);
+    $self->{pp}->_set_context_pos($saved_pos);
 
     return $initial_nodeset;
 }

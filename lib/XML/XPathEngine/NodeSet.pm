@@ -120,6 +120,11 @@ sub to_number {
 			);
 }
 
+sub to_final_value{
+	my $self = CORE::shift;
+	return join('', map { $_->string_value } @$self);
+}
+
 1;
 __END__
 

@@ -7,7 +7,6 @@ use strict;
 
 use overload
         '""' => \&value,
-        '0+' => \&value,
         '<=>' => \&cmp;
 
 sub new {

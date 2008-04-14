@@ -6,7 +6,7 @@ use XML::XPathEngine::Number;
 use strict;
 
 use overload 
-		'""' => \&value,
+		'""'  => \&value,
 		'cmp' => \&cmp;
 
 sub new {
@@ -33,8 +33,14 @@ sub as_xml {
 }
 
 sub value {
-	my $self = shift;
+	my $self = shift; 
 	$$self;
+}
+
+sub value_as_number {
+	my $self = shift; 
+ warn "numifying '", $$self, "' to '", +$$self, "'\n";       
+	+$$self;
 }
 
 sub cmp {

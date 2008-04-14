@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.09';
+$VERSION = '0.10';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 
@@ -106,7 +106,11 @@ sub findnodes {
     if ($results->isa('XML::XPathEngine::NodeSet')) 
       { return wantarray ? $results->get_nodelist : $results; }
     else
-      { return wantarray ? ($results) : $results; } # result should be SCALAR
+      { return wantarray ? XML::XPathEngine::NodeSet->new($results) 
+                         : $results; 
+      } # result should be SCALAR
+      #{ return wantarray ? ($results) : $results; } # result should be SCALAR
+      #{ return wantarray ? () : XML::XPathEngine::NodeSet->new();   }
 }
 
 
@@ -155,8 +159,10 @@ sub findvalue {
     my $self = shift;
     my ($path, $context) = @_;
     my $results = $self->find( $path, $context);
-    if ($results->isa('XML::XPathEngine::NodeSet')) { return $results->to_literal; }
-    return $results;
+    if ($results->isa('XML::XPathEngine::NodeSet')) 
+      { return $results->to_final_value; }
+      #{ return $results->to_literal; }
+    return $results->value;
 }
 
 sub exists
@@ -1045,13 +1051,8 @@ Returns the nodes found as a list of strings, one per node found.
 
 =head2 findvalue ($path, $context)
 
-Returns either a C<XML::XPathEngine::Literal>, a C<XML::XPathEngine::Boolean>
-or a C<XML::XPathEngine::Number> object. If the path returns a NodeSet,
-$nodeset->to_literal is called automatically for you (and thus a
-C<XML::XPathEngine::Literal> is returned). Note that
-for each of the objects stringification is overloaded, so you can just
-print the value found, or manipulate it in the ways you would a normal
-perl value (e.g. using regular expressions).
+Returns the result as a string (the concatenation of the values of the
+result nodes).
 
 =head2 exists ($path, $context)
 
