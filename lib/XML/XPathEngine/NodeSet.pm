@@ -29,14 +29,14 @@ sub reverse {
 
 sub remove_duplicates {
     my $self = CORE::shift;
-		my @unique;
-		my $last_node=0;
-		foreach my $node (@$self) { 
-				push @unique, $node unless( $node == $last_node);
-				$last_node= $node;
-		}
-		@$self= @unique; 
-		return $self;
+    my @unique;
+    my $last_node=0;
+    foreach my $node (@$self) { 
+        push @unique, $node unless( $node == $last_node);
+        $last_node= $node;
+    }
+    @$self= @unique; 
+    return $self;
 }
 
 
@@ -95,6 +95,17 @@ sub get_nodelist {
 	@$self;
 }
 
+sub getChildNodes {
+    my $self = CORE::shift;
+    return map { $_->getChildNodes } @$self;
+}
+
+sub getElementById {
+    my $self = CORE::shift;
+    return map { $_->getElementById } @$self;
+}
+
+       
 sub to_boolean {
 	my $self = CORE::shift;
 	return (@$self > 0) ? XML::XPathEngine::Boolean->True : XML::XPathEngine::Boolean->False;

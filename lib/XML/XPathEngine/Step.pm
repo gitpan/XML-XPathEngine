@@ -248,11 +248,11 @@ sub axis_descendant {
     my @stack = $context->getChildNodes;
 
     while (@stack) {
-        my $node = pop @stack;
+        my $node = shift @stack;
         if (node_test($self, $node)) {
-            $results->unshift($node);
+            $results->push($node);
         }
-        push @stack, $node->getChildNodes;
+        unshift @stack, $node->getChildNodes;
     }
 }
 
@@ -261,14 +261,15 @@ sub axis_descendant_or_self {
     my ($context, $results) = @_;
     
     my @stack = ($context);
-    
-    while (@stack) {
-        my $node = pop @stack;
-        if (node_test($self, $node)) {
-            $results->unshift($node);
-        }
-        push @stack, $node->getChildNodes;
-    }
+
+     while (@stack) {
+        my $node = shift @stack;
+         if (node_test($self, $node)) {
+            $results->push($node);
+         }
+        #warn "node is a ", ref( $node);
+        unshift @stack, $node->getChildNodes;
+     }
 }
 
 sub axis_following 

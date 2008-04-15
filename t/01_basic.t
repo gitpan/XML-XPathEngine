@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 23;
+use Test::More tests => 31;
 use XML::XPathEngine;
 
 BEGIN { push @INC, './t'; }
@@ -35,8 +35,8 @@ is( $xp->findvalue( '//*[@att2]', $tree), 'gvkid1gkid2 1gvkid2gkid2 2gvkid3gkid2
 
 is( $xp->findvalue( '//kid1[@att1=~/v[345]/]', $tree), 'vkid3vkid5', "match on attributes");
 
-is( $xp->findvalue( '//@*', $tree), 'v1v1vvvx1v2vvvx0v3vvvx1v4vvvx0v5vvvx1', 'match all attributes');
-is( $xp->findvalue( '//@*[parent::*/@att1=~/v[345]/]', $tree), 'v3v4v5', 'match all attributes with a test');
+is( $xp->findvalue( '//@*', $tree), 'i1v1i2v1i3vvi4vx1i5v2i6vvi7vx0i8v3i9vvi10vx1i11v4i12vvi13vx0i14v5i15vvi16vx1i17', 'match all attributes');
+is( $xp->findvalue( '//@*[parent::*/@att1=~/v[345]/]', $tree), 'v3i9v4i12v5i15', 'match all attributes with a test');
 
 is( $xp->findvalue( '//kid1[@att1="v3"]/following::gkid2[1]', $tree), 'gkid2 4', "following axis[1]");
 is( $xp->findvalue( '//kid1[@att1="v3"]/following::gkid2[2]', $tree), 'gkid2 5', "following axis[2]");
@@ -57,18 +57,32 @@ is( $xp->findvalue( 'count(//gkid2[@att2="vx" and @att3=1])', $tree), 3, 'count 
 is( $xp->findvalue( 'count(//gkid2[@att2="vx" and @att3])', $tree), 5, 'count with and');
 is( $xp->findvalue( 'count(//gkid2[@att2="vx" or @att3])', $tree), 5, 'count with or');
 
+#warn $xp->findvalue( './/*/@id', $tree);
+is( $xp->findvalue( '(.//*)[2]/@id', $tree), 'i3', '(descendant::*)[2]');
+
+is( $xp->findvalue( '//kid1[@att1="v3"]/following::gkid2[1]', $tree), 'gkid2 4', "following axis[1]");
+is( $xp->findvalue( '//kid1[@att1="v3"]/following::gkid2[2]', $tree), 'gkid2 5', "following axis[2]");
+
+is( $xp->findvalue( 'id("i2")/@att1', $tree), 'v1', 'id()');
+is( $xp->findvalue( 'substring-after(//kid1[1]/@att1, "v")', $tree), '1', 'substring-after');
+is( $xp->findvalue( 'id("i3")//*[1]/@att2', $tree), 'vv', 'id descendants attribute');
+is( $xp->findvalue( '(id("i3")//*)[1]/@att2', $tree), 'vv', 'grouped id descendants attribute');
+is( $xp->findvalue( 'substring-after((id("i2")//*[1])/@att2, "v")', $tree), 'v', 'substring-after(id())');
 
 sub init_tree
-  { my $tree  = tree->new( 'att', name => 'tree', value => 'tree');
-    my $root  = tree->new( 'att', name => 'root', value => 'root_value', att1 => 'v1');
+  { my $id=0;
+
+    my $tree  = tree->new( 'att', name => 'tree', value => 'tree', id => "i" . ++$id);
+    my $root  = tree->new( 'att', name => 'root', value => 'root_value', att1 => 'v1', id => "i" . ++$id);
     $root->add_as_last_child_of( $tree);
 
+
     foreach (1..5)
-      { my $kid= tree->new( 'att', name => 'kid' . $_ % 2, value => "vkid$_", att1 => "v$_");
+      { my $kid= tree->new( 'att', name => 'kid' . $_ % 2, value => "vkid$_", att1 => "v$_", id => "i" . ++$id);
         $kid->add_as_last_child_of( $root);
-        my $gkid1= tree->new( 'att', name => 'gkid' . $_ % 2, value => "gvkid$_", att2 => "vv");
+        my $gkid1= tree->new( 'att', name => 'gkid' . $_ % 2, value => "gvkid$_", att2 => "vv", id => "i" . ++$id);
         $gkid1->add_as_last_child_of( $kid);
-        my $gkid2= tree->new( 'att', name => 'gkid2', value => "gkid2 $_", att2 => "vx", att3 => $_ % 2);
+        my $gkid2= tree->new( 'att', name => 'gkid2', value => "gkid2 $_", att2 => "vx", att3 => $_ % 2, id => "i" . ++$id);
         $gkid2->add_as_last_child_of( $kid);
       }
 
@@ -76,7 +90,6 @@ sub init_tree
 
     return $tree;
   }
-
 
 package tree;
 use base 'minitree';
@@ -92,6 +105,7 @@ sub getLastChild       { return shift->last_child;         }
 sub getNextSibling     { return shift->next_sibling;        }
 sub getPreviousSibling { return shift->previous_sibling;    }
 sub isElementNode      { return 1;                          }
+sub isAttributeNode    { return 0;                          }
 sub get_pos            { return shift->pos;          }
 sub getAttributes      { return wantarray ? @{shift->attributes} : shift->attributes; }
 sub as_xml 
@@ -104,6 +118,18 @@ sub as_xml
 
 sub cmp { my( $a, $b)= @_; return $a->pos <=> $b->pos; }
 
+sub getElementById
+  { my $elt = shift;
+    my $id = shift;
+    foreach ( @{$elt->attributes} ) {
+    	$_->getName eq 'id' and $_->getValue eq $id and return $elt;
+    }
+    foreach ( $elt->getChildNodes ) {
+    	return $_->getElementById($id);
+    }
+}
+
+
 1;
 
 package att;
@@ -115,9 +141,13 @@ sub string_value       { return shift->value; }
 sub getRootNode        { return shift->parent->root;        }
 sub getParentNode      { return shift->parent;              }
 sub isAttributeNode    { return 1;                          }
-sub getChildNodes      { return; }
+sub getChildNodes      { return ; }
 
 sub cmp { my( $a, $b)= @_; return $a->pos <=> $b->pos; }
+
+sub getElementById
+  { return shift->getParentNode->getElementById( @_); }
+
 
 1;
 

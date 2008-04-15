@@ -1,5 +1,14 @@
 Revision history for XML::XPathEngine
 
+version 011
+fix:    axis_descendant returns descendants in incorrect order.
+        found and patched by Kumagai Kentaro
+        http://rt.cpan.org/Ticket/Display.html?id=35049
+
+fix:    calling id() function in some situations causes an error
+        found and patched by Kumagai Kentaro
+        http://rt.cpan.org/Ticket/Display.html?id=35049
+
 version 0.10
 fix:    overloading did not quite work (literals returned by findvalue
         woult cause an exception when used as numbers).

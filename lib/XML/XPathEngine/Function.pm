@@ -49,7 +49,7 @@ sub as_xml {
 sub evaluate {
     my $self = shift;
     my $node = shift;
-    if ($node->isa('XML::XPathEngine::NodeSet')) {
+    while ($node->isa('XML::XPathEngine::NodeSet')) {
         $node = $node->get_node(1);
     }
     my @params;
@@ -117,6 +117,10 @@ sub id {
         my $string = $self->string($node, $params[0]);
         $_ = $string->value; # get perl scalar
         my @ids = split; # splits $_
+        if ($node->isAttributeNode) {
+            warn "calling \($node->getParentNode->getRootNode->getChildNodes)->[0] on attribute node\n";
+            $node = ($node->getParentNode->getRootNode->getChildNodes)->[0];
+        }
         foreach my $id (@ids) {
             if (my $found = $node->getElementById($id)) {
                 $results->push($found);
