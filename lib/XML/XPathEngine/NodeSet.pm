@@ -131,11 +131,15 @@ sub to_number {
 			);
 }
 
-sub to_final_value{
+sub to_final_value {
 	my $self = CORE::shift;
 	return join('', map { $_->string_value } @$self);
 }
 
+sub string_values {
+	my $self = CORE::shift;
+	return map { $_->string_value } @$self;
+}
 1;
 __END__
 
@@ -176,6 +180,11 @@ the nodes.
 
 Returns the string-value of the first node in the list.
 See the XPath specification for what "string-value" means.
+
+=head2 string_values()
+
+Returns a list of the string-values of all the nodes in the list.
+
 
 =head2 to_literal()
 

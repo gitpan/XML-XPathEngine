@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION $AUTOLOAD $revision);
 
-$VERSION = '0.11';
+$VERSION = '0.12';
 $XML::XPathEngine::Namespaces = 0;
 $XML::XPathEngine::DEBUG = 0;
 
@@ -164,6 +164,16 @@ sub findvalue {
       #{ return $results->to_literal; }
     return $results->value;
 }
+
+sub findvalues {
+    my $self = shift;
+    my ($path, $context) = @_;
+    my $results = $self->find( $path, $context);
+    if ($results->isa('XML::XPathEngine::NodeSet')) 
+      { return $results->string_values; }
+    return ($results->string_value);
+}
+
 
 sub exists
 {
@@ -1053,6 +1063,10 @@ Returns the nodes found as a list of strings, one per node found.
 
 Returns the result as a string (the concatenation of the values of the
 result nodes).
+
+=head2 findvalues($path, $context)
+
+Returns the values of the result nodes as a list of strings.
 
 =head2 exists ($path, $context)
 

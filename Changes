@@ -1,6 +1,9 @@
 Revision history for XML::XPathEngine
 
-version 011
+version 0.12
+added:  findvalues method which returns the results as a list of strings
+
+version 0.11
 fix:    axis_descendant returns descendants in incorrect order.
         found and patched by Kumagai Kentaro
         http://rt.cpan.org/Ticket/Display.html?id=35049

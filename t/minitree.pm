@@ -88,12 +88,9 @@ package minitree;
 
   sub dump
     { my $self= shift;
+      my @fields= qw( name value pos);
       return   "$$self : " 
-      # . join ( " - ", grep { $_ } map { "$_ : " . ${$self->$_} if( $self->$_) }  
-      #                                       qw( parent next_sibling previous_sibling first_child)
-      #             )
-      #      . ' : '
-             . join ( " - ", map { "$_ : " . $self->$_ }  (qw( name value pos)) )
+             . join ( " - ", map { "$_ : " . $self->$_ }  @fields )
              . " : " . join( " - ", map { $_->dump } @{$self->attributes})
              ;
     }

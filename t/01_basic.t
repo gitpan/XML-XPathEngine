@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 31;
+use Test::More tests => 33;
 use XML::XPathEngine;
 
 BEGIN { push @INC, './t'; }
@@ -12,6 +12,7 @@ my $tree = init_tree();
 my $xp   = XML::XPathEngine->new;
 
 #warn $tree->as_xml, "\n\n";
+
 {
 my @root_nodes= $xp->findnodes( '/root', $tree);
 is( join( ':', map { $_->value } @root_nodes), 'root_value', q{findnodes( '/root', $tree)});
@@ -68,6 +69,9 @@ is( $xp->findvalue( 'substring-after(//kid1[1]/@att1, "v")', $tree), '1', 'subst
 is( $xp->findvalue( 'id("i3")//*[1]/@att2', $tree), 'vv', 'id descendants attribute');
 is( $xp->findvalue( '(id("i3")//*)[1]/@att2', $tree), 'vv', 'grouped id descendants attribute');
 is( $xp->findvalue( 'substring-after((id("i2")//*[1])/@att2, "v")', $tree), 'v', 'substring-after(id())');
+
+is( join( '|', $xp->findvalues( '//kid1[@att1=~/v[345]/]', $tree)), 'vkid3|vkid5', "findvalues match on attributes");
+is( join( '|', $xp->findvalues( '//kid1[@att1=~/v[345]/]/@id', $tree)), 'i9|i15', "findvalues on attributes");
 
 sub init_tree
   { my $id=0;
