@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 33;
+use Test::More;
 use XML::XPathEngine;
 
 BEGIN { push @INC, './t'; }
@@ -72,6 +72,17 @@ is( $xp->findvalue( 'substring-after((id("i2")//*[1])/@att2, "v")', $tree), 'v',
 
 is( join( '|', $xp->findvalues( '//kid1[@att1=~/v[345]/]', $tree)), 'vkid3|vkid5', "findvalues match on attributes");
 is( join( '|', $xp->findvalues( '//kid1[@att1=~/v[345]/]/@id', $tree)), 'i9|i15', "findvalues on attributes");
+
+is( $xp->findvalue( '2', $tree), 2, 'findvalues on a litteral'); 
+is( $xp->findvalue( '//gkid1="gvkid1"', $tree), 1, 'findvalues on a litteral'); 
+eval {  $xp->findvalues( '//gkid1="gvkid1"/ggkid', $tree); };
+like( $@, qr/cannot get child nodes of a literal/, 'children axis from a litteral');
+eval {  $xp->findvalues( '//gkid1="gvkid1"/../gkid1', $tree); };
+like( $@, qr/cannot get parent node of a literal/, 'parent axis from a litteral');
+eval {  $xp->findvalues( '//gkid1="gvkid1"/@att', $tree); };
+like( $@, qr/cannot get attributes of a literal/, 'attribute axis from a litteral');
+
+done_testing();
 
 sub init_tree
   { my $id=0;

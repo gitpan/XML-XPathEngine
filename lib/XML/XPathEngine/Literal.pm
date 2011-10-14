@@ -4,6 +4,7 @@ package XML::XPathEngine::Literal;
 use XML::XPathEngine::Boolean;
 use XML::XPathEngine::Number;
 use strict;
+use Carp;
 
 use overload 
 		'""'  => \&value,
@@ -67,8 +68,9 @@ sub to_literal { return $_[0]; }
 
 sub string_value { return $_[0]->value; }
 
-sub getChildNodes { return wantarray ? () : []; }
-sub getAttributes { return wantarray ? () : []; }
+sub getChildNodes { croak "cannot get child nodes of a literal"; }
+sub getAttributes { croak "cannot get attributes of a literal";  }
+sub getParentNode { croak "cannot get parent node of a literal"; }
 
 1;
 __END__
